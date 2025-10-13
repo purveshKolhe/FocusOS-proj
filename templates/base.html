@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FocusOS{% endblock %}</title>
+    <link rel="shortcut icon" href="static\assets\logo\fav.png" type="image/x-icon">
+    <link href="/static/lib/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="/static/css/particles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    {# <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"> <!-- Removed Inter font --> #}
+    {% block extra_css %}{% endblock %}
+
+    <script src="/static/lib/jquery-3.6.0.min.js"></script>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <!-- Add Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- Add Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <!-- MathJax Configuration -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true,
+          tags: 'ams' // For automatic numbering, if needed later
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <!-- End MathJax Configuration -->
+
+    <script>
+        console.log("[Base.html:Head] Main script block started.");
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmmO-UoUZo4fWvTTIzWORweszVLD3HPe0",
+            authDomain: "studybuddy-4d84c.firebaseapp.com",
+            projectId: "studybuddy-4d84c",
+            storageBucket: "studybuddy-4d84c.firebasestorage.app",
+            messagingSenderId: "912454151146",
+            appId: "1:912454151146:web:556ffcf35a227107476093",
+            measurementId: "G-XVLZYJWMPN"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("[Base.html:Head] Firebase initialized.");
+        } else {
+            console.log("[Base.html:Head] Firebase already initialized.");
+        }
+
+        // Promise for Firebase Auth readiness
+        window.firebaseAuthReady = new Promise((resolve) => {
+            const firebaseCustomToken = "{{ firebase_custom_token_for_client or '' }}";
+            const expectedUidOnSignIn = "{{ session_user_id_for_debug or 'NOT_SET' }}";
+            
+            console.log(`[Base.html:Head] Custom Token: '${firebaseCustomToken ? firebaseCustomToken.substring(0,15) : 'None' }...'`);
+            console.log(`[Base.html:Head] Expected UID: '${expectedUidOnSignIn}'`);
+
+            if (firebaseCustomToken && firebaseCustomToken !== "None" && firebaseCustomToken !== "null" && firebaseCustomToken.trim() !== "") {
+                firebase.auth().signInWithCustomToken(firebaseCustomToken)
+                    .then((userCredential) => {
+                        console.log(`[Base.html:Head] Custom token sign-in SUCCESS. Firebase User UID: ${userCredential.user.uid}`);
+                        if (expectedUidOnSignIn && expectedUidOnSignIn !== 'NOT_SET' && userCredential.user.uid !== expectedUidOnSignIn) {
+                            console.warn(`[Base.html:Head] UID MISMATCH! Expected ${expectedUidOnSignIn}, got ${userCredential.user.uid}.`);
+                        }
+                        resolve(userCredential.user);
+                    })
+                    .catch((error) => {
+                        console.error(`[Base.html:Head] Custom token sign-in FAILED:`, error);
+                        console.error(`[Base.html:Head] Token used: \"${firebaseCustomToken}\"`);
+                        // Don't force reload, just resolve as null. The app should handle the null user state.
+                        resolve(null); 
+                    });
+            } else {
+                console.log("[Base.html:Head] No custom token. Using onAuthStateChanged.");
+                const unsubscribe = firebase.auth().onAuthStateChanged(user => {
+                    unsubscribe(); 
+                    console.log(`[Base.html:Head] onAuthStateChanged user:`, user ? user.uid : null);
+                    resolve(user);
+                });
+            }
+        });
+    </script>
+    <script src="/static/js/notifications.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <div id="particles-js" class="particles"></div>
+    {% block content %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="/static/js/particles.js"></script>
+    
+    <!-- Background Selection Modal -->
+    <div id="background-selection-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-modal-container-div bg-gray-900 bg-opacity-95 p-5 sm:p-6 rounded-xl shadow-glow max-w-3xl w-full text-white backdrop-blur-md border border-purple-500 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-purple-300">Choose Background</h2>
+                <button id="close-background-modal-btn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <!-- Main Tabs (Videos/Images) -->
+            <div class="mb-4 flex border-b border-gray-700">
+                <button class="bg-modal-main-tab flex-1 py-2 px-4 text-sm font-medium text-center text-gray-400 hover:text-purple-300 border-b-2 border-transparent hover:border-purple-300 focus:outline-none active" data-tab-type="video">
+                    <i class="fas fa-video mr-2"></i>Videos
+                </button>
+                <button class="bg-modal-main-tab flex-1 py-2 px-4 text-sm font-medium text-center text-gray-400 hover:text-purple-300 border-b-2 border-transparent hover:border-purple-300 focus:outline-none" data-tab-type="image">
+                    <i class="fas fa-image mr-2"></i>Images
+                </button>
+            </div>
+
+            <!-- Sub-Category Icon Tabs -->
+            <div id="bg-modal-subcategory-tabs" class="mb-4 flex space-x-2 justify-center p-2 bg-gray-800 rounded-md overflow-x-auto">
+                <!-- Sub-category icons will be populated here by JS -->
+            </div>
+
+            <!-- Background Items Grid -->
+            <div id="bg-modal-grid-container" class="flex-grow overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-1 styled-scrollbar">
+                <!-- Filtered background items will be populated here by JS -->
+            </div>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

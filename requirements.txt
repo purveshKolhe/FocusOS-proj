@@ -1,0 +1,13 @@
+flask==2.0.1
+flask-cors==3.0.10
+google-genai
+firebase-admin==6.2.0
+firebase==4.0.1
+Pillow==9.5.0
+Werkzeug==2.0.3
+gunicorn==22.0.0
+python-dotenv==0.19.0
+eventlet==0.33.3
+Flask-SocketIO==5.3.6
+pyOpenSSL==24.0.0
+agora-token-builder 

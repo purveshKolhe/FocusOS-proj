@@ -1,0 +1,808 @@
+{% extends "base.html" %}
+
+{% block title %}FocusOS - Gamified Study Platform{% endblock %}
+
+{% block extra_css %}
+    {# We can keep styles.css here if it's truly specific to index.html, #}
+    {# but usually common styles are in base.html or a shared CSS file loaded by base.html #}
+    {# For now, assuming styles.css is primarily for index.html's structure #}
+    <link rel="stylesheet" href="/static/css/styles.css">
+{% endblock %}
+
+{% block content %}
+    <!-- Background Container -->
+    <div id="background-container" class="absolute inset-0 z-0">
+        <div class="overlay"></div>
+        <video id="background-video" autoplay loop muted class="w-full h-full object-cover">
+            <source src="/static/assets/videos/forest_stream.webm" type="video/webm">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    
+    <!-- Particle Container -->
+    <div id="particles-js" class="absolute inset-0 z-1 pointer-events-none"></div>
+
+    <!-- Checklist Modal -->
+    <div id="checklist-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="modal-content bg-gray-900 bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-glow max-w-md w-full text-white backdrop-blur-md border border-purple-500">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-purple-300">Study Prep Checklist</h2>
+            <div id="checklist-step-1" class="space-y-4">
+                <p class="text-lg">Have you turned off all social media notifications?</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="social-yes" class="btn-primary btn-glow-purple"><i class="fas fa-check mr-2"></i>Yes</button>
+                    <button id="social-no" class="btn-danger btn-glow-purple"><i class="fas fa-times mr-2"></i>No</button>
+                </div>
+            </div>
+            <div id="checklist-step-2" class="space-y-4 hidden">
+                <p class="text-lg">Do you have all your study materials and a water bottle?</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="materials-yes" class="btn-primary btn-glow-purple"><i class="fas fa-check mr-2"></i>Yes</button>
+                    <button id="materials-no" class="btn-danger btn-glow-purple"><i class="fas fa-times mr-2"></i>No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden px-4">
+        <div class="modal-content bg-gray-900 bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-glow max-w-lg w-full text-white backdrop-blur-md border border-blue-500 flex flex-col max-h-[85vh]" style="display: flex; flex-direction: column; max-width: 32rem; width: 100%; max-height: 85vh;">
+            <h2 class="text-xl sm:text-2xl font-bold mb-6 text-center text-blue-300">FocusOS Game Rules</h2>
+            
+            <div class="space-y-4 overflow-y-auto pr-2 flex-grow" style="flex-grow: 1; overflow-y: auto;">
+
+                <div class="p-3 bg-gray-800 bg-opacity-70 rounded-lg">
+                    <h3 class="text-md font-semibold text-blue-300 mb-1 flex items-center"><i class="fas fa-star fa-fw mr-2 text-yellow-400"></i>XP & Levels</h3>
+                    <p class="text-sm text-gray-300">Earn XP for focus time (e.g., 1 XP/min). More XP = Higher Levels! Track in "Progress".</p>
+                </div>
+
+                <div class="p-3 bg-gray-800 bg-opacity-70 rounded-lg">
+                    <h3 class="text-md font-semibold text-blue-300 mb-1 flex items-center"><i class="fas fa-trophy fa-fw mr-2 text-amber-500"></i>Badges</h3>
+                    <p class="text-sm text-gray-300">Unlock cool badges for achievements!</p>
+                    <div class="mt-2 flex space-x-3 justify-center">
+                        <span class="tooltip_inline">
+                            <i class="fas fa-medal fa-2x text-orange-400"></i>
+                            <span class="tooltiptext_inline_content">Time Master: Study a lot!</span>
+                        </span>
+                        <span class="tooltip_inline">
+                            <i class="fas fa-moon fa-2x text-indigo-400"></i>
+                            <span class="tooltiptext_inline_content">Night Owl: Focus late!</span>
+                        </span>
+                        <span class="tooltip_inline">
+                            <i class="fas fa-fire-alt fa-2x text-red-500"></i>
+                            <span class="tooltiptext_inline_content">Streak Pro: Consistent effort!</span>
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 text-center">See all your badges in "Progress".</p>
+                </div>
+
+                <div class="p-3 bg-gray-800 bg-opacity-70 rounded-lg">
+                    <h3 class="text-md font-semibold text-blue-300 mb-1 flex items-center"><i class="fas fa-map-signs fa-fw mr-2 text-green-400"></i>Quests</h3>
+                    <p class="text-sm text-gray-300">Complete Daily & Weekly Quests for bonus XP. Find active missions in "Progress".</p>
+                </div>
+
+                <div class="p-3 bg-gray-800 bg-opacity-70 rounded-lg">
+                    <h3 class="text-md font-semibold text-blue-300 mb-1 flex items-center"><i class="fas fa-chart-line fa-fw mr-2 text-teal-400"></i>Streaks & Leaderboard</h3>
+                    <p class="text-sm text-gray-300">Study daily to build Streaks. Compete on the Leaderboard (XP or Streak)!</p>
+                </div>
+
+            </div>
+
+            <div class="flex justify-center mt-6 flex-shrink-0" style="flex-shrink: 0;">
+                <button id="close-rules" class="btn-primary btn-glow-purple"><i class="fas fa-check mr-2"></i>Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div id="workspace" class="relative z-10 w-full h-full hidden">
+        <!-- Header Section with Logo and Sound Control -->
+        <div class="fixed top-0 left-0 right-0 bg-black bg-opacity-10 backdrop-blur-sm p-2 z-30 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="logo-container">
+                    <img src="/static/assets/logo/logo.png" alt="FocusOS Logo" class="logo-image">
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Notification Bell -->
+                    <div class="relative">
+                        <button id="notification-bell" class="text-white hover:text-purple-300 transition-colors relative ">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                        </button>
+                        <!-- Notification Panel -->
+                        <div id="notification-panel" class="absolute right-0 mt-2 w-80 bg-gray-900 rounded-lg shadow-lg border border-purple-500 hidden">
+                            <div class="p-3 border-b border-gray-700 flex justify-between items-center">
+                                <h3 class="text-white font-semibold">Notifications</h3>
+                                <button id="clear-notifications" class="text-gray-400 hover:text-white text-sm">
+                                    <i class="fas fa-trash-alt"></i> Clear All
+                                </button>
+                            </div>
+                            <div id="notification-list" class="max-h-96 overflow-y-auto">
+                                <!-- Notifications will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vertical Navigation Bar -->
+        <div class="fixed top-16 left-0 h-full bg-black bg-opacity-0 z-30 vertical-nav">
+            <div class="nav-tabs-wrapper w-full h-full overflow-y-auto">
+                <div class="flex flex-col h-full space-y-2">
+                    <button class="nav-tab active" data-target="timer-panel">
+                        <i class="fas fa-clock"></i>
+                        <span class="tab-text">Timer</span>
+                    </button>
+                    <button class="nav-tab" data-target="stats-panel">
+                        <i class="fas fa-chart-line"></i> <!-- Changed icon for consolidated stats -->
+                        <span class="tab-text">Stats</span>
+                    </button>
+                    <button class="nav-tab" data-target="environment-panel">
+                        <i class="fas fa-cog"></i> <!-- Gear icon for Environment -->
+                        <span class="tab-text">Environment</span>
+                    </button>
+                    <button class="nav-tab" data-target="daphinix-panel">
+                        <i class="fas fa-robot"></i>
+                        <span class="tab-text">Daphinix</span>
+                    </button>
+                    <button class="nav-tab" data-target="todo-panel">
+                        <i class="fas fa-tasks"></i>
+                        <span class="tab-text">To-Do</span>
+                    </button>
+                    <button class="nav-tab" data-target="rooms-panel">
+                        <i class="fas fa-users"></i>
+                        <span class="tab-text">Study Rooms</span>
+                    </button>
+                    <!-- Removed Progress and Leaderboard, Guide tab might be kept or removed based on whether its content is merged to Stats -->
+                    <button class="nav-tab" data-target="guide-panel">
+                        <i class="fas fa-book-open"></i>
+                        <span class="tab-text">Guide</span>
+                    </button>
+                    <button class="nav-tab" data-target="inspire-panel">
+                        <i class="fas fa-lightbulb"></i>
+                        <span class="tab-text">Inspire</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Control Buttons (Focus Mode & Rules) -->
+        <div class="fixed bottom-4 right-4 z-30 flex space-x-3" id="control-buttons-container">
+            <button id="focus-mode" class="control-button-style bg-black bg-opacity-60 text-white p-3 rounded-full hover:bg-opacity-80 transition-all duration-300 tooltip">
+                <i class="fas fa-eye"></i>
+             </button>
+            <button id="rules-button" class="control-button-style bg-black bg-opacity-60 text-white p-3 rounded-full hover:bg-opacity-80 transition-all duration-300 tooltip">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <button id="exit-focus-mode" class="control-button-style hidden">
+                <i class="fas fa-times-circle"></i>
+                <span class="tooltiptext">Exit Focus Mode</span>
+            </button>
+        </div>
+
+        <!-- Content Panels -->
+        <div class="container-with-sidebar mx-auto pt-24 pb-4 px-4">
+            <!-- Timer Panel -->
+            <div id="timer-panel" class="content-panel active">
+                <div class="flex flex-col items-center justify-center h-full">
+                    <!-- Purple Circle Timer -->
+                    <div id="pomodoro-clock-container" class="timer-circle mb-8">
+                        <h2 class="text-center text-white text-xl mb-4">Pomodoro Timer</h2>
+                        <div class="time-display">
+                            <div id="timer-display" class="timer-text">25:00</div>
+                            <div id="session-label" class="session-label">Work Session</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timer Controls -->
+                    <div class="w-full max-w-xs space-y-3 mb-5">
+                        <!-- Container for All Timer Buttons -->
+                        <div class="timer-buttons-container flex space-x-3">
+                            <button 
+                                id="start-timer" 
+                                class="btn btn-primary flex-1">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button id="pause-timer" class="btn btn-warning flex-1 hidden">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button id="reset-timer" class="btn btn-danger flex-1">
+                                <i class="fas fa-redo-alt"></i> 
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Duration Inputs -->
+                    <div class="flex justify-between w-full max-w-xs">
+                        <div class="duration-input">
+                            <label for="work-duration" class="text-white">Work (min):</label>
+                            <input id="work-duration" type="number" value="25" min="1" class="duration-field">
+                        </div>
+                        <div class="duration-input">
+                            <label for="break-duration" class="text-white">Break (min):</label>
+                            <input id="break-duration" type="number" value="5" min="1" class="duration-field">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Panel -->
+            <div id="progress-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-lg mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Your Progress</h2>
+                    <div class="level-container mb-6">
+                        <div class="level-badge">
+                            <span id="level">1</span>
+                        </div>
+                        <div class="ml-3 flex-grow">
+                            <p class="text-sm text-gray-300">Level</p>
+                            <div class="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+                                <div id="xp-progress" class="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <p class="text-xs mt-1"><span id="xp">0</span> / <span id="xp-needed">100</span> XP</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                            <p class="flex items-center"><i class="fas fa-clock text-purple-300 mr-2"></i> Total Study:</p>
+                            <p class="text-2xl font-bold mt-1"><span id="total-time">0</span> min</p>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                            <p class="flex items-center"><i class="fas fa-fire text-orange-400 mr-2"></i> Streak:</p>
+                            <p class="text-2xl font-bold mt-1"><span id="streak">0</span> days</p>
+                        </div>
+                    </div>
+                    <div id="badges" class="mb-4">
+                        <h3 class="font-bold text-purple-300 mb-3"><i class="fas fa-trophy mr-1"></i> Badges:</h3>
+                        <div class="bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                            <div id="badges-list" class="flex justify-center space-x-6 flex-wrap gap-y-4">
+                                <!-- Badges will be rendered here by script.js -->
+                                <p class="text-gray-400 text-sm italic hidden" id="no-badges-message">No badges earned yet. Keep up the good work!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="quests-container" class="mt-6">
+                        <h3 class="font-bold text-purple-300 mb-3"><i class="fas fa-map-signs mr-1"></i> Active Quests:</h3>
+                        <div id="active-quests-list" class="space-y-3 bg-gray-800 bg-opacity-60 p-4 rounded-lg max-h-60 overflow-y-auto">
+                            <!-- Active quests will be rendered here -->
+                             <p class="text-gray-400 text-sm italic" id="no-quests-message">No active quests. New quests may appear daily or weekly!</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Environment Panel -->
+            <div id="environment-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-lg mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Environment Settings</h2>
+                    
+                    <div class="mb-6">
+                        <h3 class="font-bold mb-3 text-purple-300"><i class="fas fa-image mr-1"></i> Background</h3>
+                        <button id="open-background-modal-btn" class="settings-select w-full text-left flex justify-between items-center">
+                            <span id="current-background-name-display">Forest Stream</span> <!-- Default or last selected -->
+                            <i class="fas fa-edit"></i> <!-- Or some other icon indicating 'change' -->
+                        </button>
+                        <!-- The old background-grid-container is removed from here -->
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="font-bold mb-3 text-purple-300"><i class="fas fa-volume-up mr-1"></i> Ambient Sound</h3>
+                        <select id="ambient-sound-select" class="settings-select">
+                            <option value="none">No Sound</option>
+                            <option value="rain" selected>Rainfall</option>
+                            <option value="forest">Forest Sounds</option>
+                            <option value="cafe">Coffee Shop</option>
+                        </select>
+                        <div class="mt-3 flex items-center">
+                            <span class="mr-2">Volume:</span>
+                            <input type="range" id="volume-slider" min="0" max="100" value="50" class="w-full accent-purple-500">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold mb-3 text-purple-300"><i class="fas fa-sliders-h mr-1"></i> Effects</h3>
+                        <div class="flex items-center justify-between bg-gray-800 bg-opacity-60 p-4 rounded-lg mb-3">
+                            <span>Night Mode:</span>
+                            <label class="switch ml-2">
+                                <input type="checkbox" id="day-night-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                            <span>Show Particles:</span>
+                            <label class="switch ml-2">
+                                <input type="checkbox" id="particles-toggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Panel (Combined Progress and Leaderboard) -->
+            <div id="stats-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Your Study Statistics</h2>
+                    
+                    <!-- Progress Section -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-center text-purple-300 border-b border-purple-500 pb-2">Your Progress</h3>
+                        
+                        <div class="level-container mb-6">
+    <div class="level-badge">
+        <span id="stats-level">1</span>
+    </div>
+    <div class="ml-3 flex-grow">
+        <p class="text-sm text-gray-300">Level</p>
+        <div class="w-full bg-gray-700 rounded-full h-2.5 mt-1">
+            <div id="stats-xp-progress" class="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+        <p class="text-xs mt-1"><span id="stats-xp">0</span> / <span id="stats-xp-needed">100</span> XP</p>
+    </div>
+</div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                            <div class="stats-card">
+                                <i class="fas fa-clock text-4xl text-purple-300"></i>
+                                <h3 class="mt-2">Total Time</h3>
+                                <p id="stats-total-time" class="text-2xl font-bold">0 min</p>
+                            </div>
+                            <div class="stats-card">
+                                <i class="fas fa-fire text-4xl text-orange-400"></i>
+                                <h3 class="mt-2">Streak</h3>
+                                <p id="stats-streak" class="text-2xl font-bold">0 days</p>
+                            </div>
+                            <div class="stats-card">
+                                <i class="fas fa-calendar-alt text-4xl text-purple-300"></i>
+                                <h3 class="mt-2">Sessions</h3>
+                                <p id="stats-total-sessions" class="text-2xl font-bold">0</p>
+                            </div>
+                        </div>
+                        
+                        <div id="badges" class="mb-6">
+                            <h3 class="font-bold text-purple-300 mb-3"><i class="fas fa-trophy mr-1"></i> Badges:</h3>
+                            <div class="bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                                <div id="badges-list" class="flex justify-center space-x-6 flex-wrap gap-y-4">
+                                    <!-- Badges will be rendered here by script.js -->
+                                    <p class="text-gray-400 text-sm italic hidden" id="no-badges-message">No badges earned yet. Keep up the good work!</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="quests-container" class="mb-6">
+                            <h3 class="font-bold text-purple-300 mb-3"><i class="fas fa-map-signs mr-1"></i> Active Quests:</h3>
+                            <div id="active-quests-list" class="space-y-3 bg-gray-800 bg-opacity-60 p-4 rounded-lg max-h-60 overflow-y-auto">
+                                <!-- Active quests will be rendered here -->
+                                <p class="text-gray-400 text-sm italic" id="no-quests-message">No active quests. New quests may appear daily or weekly!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="text-lg font-bold mb-2 text-purple-300"><i class="fas fa-history mr-1"></i> Recent Sessions</h3>
+                            <div id="recent-sessions" class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                                <p class="text-gray-400 text-center">No sessions recorded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leaderboard Section -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-center text-purple-300 border-b border-purple-500 pb-2">
+                            <i class="fas fa-trophy text-yellow-400 mr-2"></i>Leaderboard
+                        </h3>
+                        <div class="mb-6 flex justify-center">
+                            <div class="inline-flex rounded-md shadow-sm bg-gray-800 p-1">
+                                <button data-type="xp" class="leaderboard-filter-btn active px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-l-md hover:bg-purple-700 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                                    <i class="fas fa-star mr-1"></i> Top XP
+                                </button>
+                                <button data-type="streak" class="leaderboard-filter-btn px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white focus:z-10 focus:ring-2 focus:ring-purple-500 rounded-r-md">
+                                    <i class="fas fa-fire mr-1"></i> Top Streaks
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="leaderboard-loading" class="text-center text-gray-400 my-8 hidden">
+                            <i class="fas fa-spinner fa-spin fa-2x mr-2"></i>
+                            <p>Loading leaderboard...</p>
+                        </div>
+                        <div id="leaderboard-error" class="text-center text-red-400 my-8 hidden">
+                            <i class="fas fa-exclamation-triangle fa-2x mr-2"></i>
+                            <p>Could not load leaderboard. Please try again later.</p>
+                        </div>
+
+                        <div class="overflow-hidden shadow-lg rounded-lg border border-gray-700">
+                            <table class="min-w-full bg-gray-800">
+                                <thead class="bg-gray-700">
+                                    <tr>
+                                        <th class="py-3 px-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Rank</th>
+                                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
+                                        <th class="py-3 px-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Level</th>
+                                        <th class="py-3 px-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">XP</th>
+                                        <th class="py-3 px-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Streak</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-table-body" class="divide-y divide-gray-700">
+                                    <!-- Leaderboard rows will be injected here -->
+                                </tbody>
+                            </table>
+                            <p id="no-leaderboard-data" class="text-gray-400 text-center py-6 hidden bg-gray-800">No data available for this leaderboard.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Daphinix Panel (AI Chat Assistant) -->
+            <div id="daphinix-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Get Help with Daphinix AI</h2>
+                    
+                    <div id="daphinix-container" class="flex flex-col">
+                        
+                        
+                        <!-- Response Area -->
+                        <div id="responseArea" class="daphinix-response-area bg-gray-800 bg-opacity-60 rounded-lg p-4 mb-4 min-h-[300px] max-h-[400px] overflow-auto">
+                            <!-- Messages will appear here -->
+                        </div>
+                        
+                        <!-- Input Area -->
+                        <div class="daphinix-input-container">
+                            <div id="image-preview-container" class="flex items-center mb-2" style="display:none;">
+                                <img id="image-preview" src="" alt="Image Preview" class="max-h-24 rounded mr-2 border border-purple-400">
+                                <button id="remove-image-btn" class="text-red-500 hover:text-red-700 text-xl font-bold" title="Remove Image" style="background:none;border:none;outline:none;cursor:pointer;">&times;</button>
+                            </div>
+                            <div class="relative flex items-center">
+                                <!-- Image upload icon button (left) -->
+                                <button id="upload-image-btn" class="mr-2 bg-purple-600 text-white rounded-full p-2 hover:bg-purple-700 transition-all" title="Upload Image">
+                                    <i class="fas fa-image"></i>
+                                </button>
+                                <input type="file" id="image-upload" accept="image/*" class="hidden">
+                                <!-- Textarea (center) -->
+                                <textarea 
+                                    id="myInput" 
+                                    class="daphinix-input w-full bg-gray-800 bg-opacity-80 text-white rounded-lg py-3 px-4 pr-12 resize-none" 
+                                    placeholder="Ask Daphinix any academic question..." 
+                                    rows="2"
+                                ></textarea>
+                                <!-- Send button (right) -->
+                                <button id="send-button" class="absolute right-3 rounded-full p-2 bg-purple-600 text-white hover:bg-purple-700 transition-all">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="flex justify-end mt-2">
+                                <button id="clear-chat" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm flex items-center">
+                                    <i class="fas fa-trash-alt mr-1"></i> Clear Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- To-Do List Panel -->
+            <div id="todo-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-5xl mx-auto w-full">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">To-Do List</h2>
+                    <div class="flex justify-end mb-4">
+                        <button id="open-todo-modal" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Add Task</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-gray-900 rounded-lg">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 text-left">Task Name</th>
+                                    <th class="py-2 px-4 text-left">Start Date</th>
+                                    <th class="py-2 px-4 text-left">Due Date</th>
+                                    <th class="py-2 px-4 text-left">Status</th>
+                                    <th class="py-2 px-4 text-left">Priority</th>
+                                    <th class="py-2 px-4 text-left">Effort Level</th>
+                                    <th class="py-2 px-4 text-left">Description</th>
+                                    <th class="py-2 px-4 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todo-table-body">
+                                <!-- Tasks will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Task Modal -->
+            <div id="todo-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+                <div class="bg-gray-900 p-6 rounded-lg shadow-glow max-w-lg w-full text-white border border-purple-500">
+                    <h3 class="text-xl font-bold mb-4 text-purple-300">Add New Task</h3>
+                    <form id="todo-form">
+                        <div class="mb-3">
+                            <label class="block mb-1">Task Name</label>
+                            <input id="todo-input-name" type="text" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" required>
+                        </div>
+                        <div class="mb-3 flex space-x-2">
+                            <div class="flex-1">
+                                <label class="block mb-1">Start Date</label>
+                                <input id="todo-input-start" type="datetime-local" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" required>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block mb-1">Due Date</label>
+                                <input id="todo-input-due" type="datetime-local" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" required>
+                            </div>
+                        </div>
+                        <div class="mb-3 flex space-x-2">
+                            <div class="flex-1">
+                                <label class="block mb-1">Status</label>
+                                <select id="todo-input-status" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white">
+                                    <option value="Not started">Not started</option>
+                                    <option value="In progress">In progress</option>
+                                    <option value="Done">Done</option>
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block mb-1">Priority</label>
+                                <select id="todo-input-priority" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block mb-1">Effort Level</label>
+                                <select id="todo-input-effort" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block mb-1">Description</label>
+                            <textarea id="todo-input-desc" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" rows="2"></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" id="close-todo-modal" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+                            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Add Task</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Rooms Panel -->
+            <div id="rooms-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Study Rooms</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Create Room Card -->
+                        <div class="bg-gray-800 bg-opacity-60 p-6 rounded-lg">
+                            <h3 class="text-xl font-bold mb-4 text-purple-300">
+                                <i class="fas fa-plus-circle mr-2"></i>Create Room
+                            </h3>
+                            <p class="text-gray-300 mb-4">Start a new study session and invite friends to join you.</p>
+                            <a href="{{ url_for('create_room') }}" class="btn-primary w-full text-center">
+                                <i class="fas fa-plus mr-2"></i>Create New Room
+                            </a>
+                        </div>
+                        
+                        <!-- Join Room Card -->
+                        <div class="bg-gray-800 bg-opacity-60 p-6 rounded-lg">
+                            <h3 class="text-xl font-bold mb-4 text-purple-300">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Join Room
+                            </h3>
+                            <p class="text-gray-300 mb-4">Enter a room code to join an existing study session.</p>
+                            <a href="{{ url_for('join_room_route') }}" class="btn-primary w-full text-center">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Join Room
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Panel -->
+            <div id="leaderboard-panel" class="content-panel">
+                <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-3xl mx-auto">
+                    <div class="flex flex-col items-center mb-6">
+                        <i class="fas fa-trophy text-5xl text-yellow-400 mb-3"></i>
+                        <h2 class="text-3xl font-bold text-center text-purple-300">Hall of Fame</h2>
+                        <p class="text-sm text-gray-400 mt-1">See who's leading the pack in focus and dedication!</p>
+                    </div>
+                    <div class="mb-6 flex justify-center">
+                        <div class="inline-flex rounded-md shadow-sm bg-gray-800 p-1">
+                            <button data-type="xp" class="leaderboard-filter-btn active px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-l-md hover:bg-purple-700 focus:z-10 focus:ring-2 focus:ring-purple-500">
+                                <i class="fas fa-star mr-1"></i> Top XP
+                            </button>
+                            <button data-type="streak" class="leaderboard-filter-btn px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white focus:z-10 focus:ring-2 focus:ring-purple-500 rounded-r-md">
+                                <i class="fas fa-fire mr-1"></i> Top Streaks
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="leaderboard-loading" class="text-center text-gray-400 my-8 hidden">
+                        <i class="fas fa-spinner fa-spin fa-2x mr-2"></i>
+                        <p>Loading leaderboard...</p>
+                    </div>
+                    <div id="leaderboard-error" class="text-center text-red-400 my-8 hidden">
+                        <i class="fas fa-exclamation-triangle fa-2x mr-2"></i>
+                        <p>Could not load leaderboard. Please try again later.</p>
+                    </div>
+
+                    <div class="overflow-hidden shadow-lg rounded-lg border border-gray-700">
+                        <table class="min-w-full bg-gray-800">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="py-3 px-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Rank</th>
+                                    <th class="py-3 px-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
+                                    <th class="py-3 px-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Level</th>
+                                    <th class="py-3 px-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">XP</th>
+                                    <th class="py-3 px-4 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Streak</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-table-body" class="divide-y divide-gray-700">
+                                <!-- Leaderboard rows will be injected here -->
+                            </tbody>
+                        </table>
+                        <p id="no-leaderboard-data" class="text-gray-400 text-center py-6 hidden bg-gray-800">No data available for this leaderboard.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guide Panel (New) -->
+            <div id="guide-panel" class="content-panel">
+                <div class="bg-black bg-opacity-70 text-white p-6 rounded-xl max-w-4xl mx-auto w-full">
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-8 text-center text-purple-300">
+                        <i class="fas fa-book-open mr-2"></i>Gamification Guide
+                    </h2>
+
+                    <!-- All Badges Section -->
+                    <div id="guide-all-badges-section" class="mb-10">
+                        <h3 class="text-xl sm:text-2xl font-semibold text-purple-300 mb-4 pb-2 border-b border-purple-400">
+                            <i class="fas fa-medal mr-2"></i>All Collectible Badges
+                        </h3>
+                        <div id="guide-badges-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <!-- Badges will be rendered here by script.js -->
+                             <p class="text-gray-400 italic col-span-full text-center" id="no-badge-definitions-message">Badge definitions could not be loaded.</p>
+                        </div>
+                    </div>
+
+                    <!-- All Quest Types Section -->
+                    <div id="guide-all-quests-section">
+                        <h3 class="text-xl sm:text-2xl font-semibold text-purple-300 mb-4 pb-2 border-b border-purple-400">
+                            <i class="fas fa-tasks mr-2"></i>Available Quest Types
+                        </h3>
+                        <div id="guide-daily-quests-list" class="mb-6">
+                            <h4 class="text-lg font-semibold text-blue-300 mb-3"><i class="fas fa-sun mr-2"></i>Daily Quests</h4>
+                            <div class="space-y-3">
+                                <!-- Daily quest types will be rendered here -->
+                                <p class="text-gray-400 italic" id="no-daily-quest-definitions-message">No daily quest types defined or loaded.</p>
+                            </div>
+                        </div>
+                        <div id="guide-weekly-quests-list">
+                            <h4 class="text-lg font-semibold text-blue-300 mb-3"><i class="fas fa-calendar-week mr-2"></i>Weekly Quests</h4>
+                            <div class="space-y-3">
+                                <!-- Weekly quest types will be rendered here -->
+                                 <p class="text-gray-400 italic" id="no-weekly-quest-definitions-message">No weekly quest types defined or loaded.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inspire Me Panel (New) -->
+            <div id="inspire-panel" class="content-panel">
+                <div class="bg-black bg-opacity-70 text-white p-4 sm:p-6 rounded-xl max-w-2xl mx-auto w-full text-center">
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-purple-300">
+                        <i class="fas fa-lightbulb mr-2"></i>Inspire Me
+                    </h2>
+
+                    <!-- Thought Prompt -->
+                    <div id="prompt-container" class="mb-6 p-4 bg-gray-800 bg-opacity-70 rounded-lg shadow-lg min-h-[80px] flex items-center justify-center">
+                        <p id="thought-prompt-display" class="text-md text-gray-200 italic">What is one small step you can take towards your goals today?</p>
+                    </div>
+
+                    <!-- Quote -->
+                    <div id="quote-container" class="mb-6 p-4 sm:p-6 bg-gray-800 bg-opacity-70 rounded-lg shadow-lg min-h-[100px] flex items-center justify-center">
+                        <p id="quote-display" class="text-lg italic text-gray-200">"The best way to predict the future is to create it."</p>
+                    </div>
+
+                    
+                       
+                   
+
+                    <!-- Fact of the Day -->
+                    <div id="fact-container" class="mb-8 p-4 bg-gray-800 bg-opacity-70 rounded-lg shadow-lg min-h-[80px] flex flex-col items-center justify-center">
+                        <h4 class="text-md font-semibold text-purple-300 mb-1">💡 Fact of the Day:</h4>
+                        <p id="fact-display" class="text-sm text-gray-300">The electrifying truth is often stranger than fiction!</p>
+                    </div>
+                    
+                    <button id="refresh-inspire-content" class="btn-primary px-6 py-3 text-lg w-full sm:w-auto">
+                        <i class="fas fa-sync-alt mr-2"></i>Get New Inspiration
+                    </button>
+                </div>
+            </div>
+
+
+
+            <!-- Background Selection Modal -->
+            <div id="background-selection-modal" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+                <div class="modal-content bg-gray-900 bg-opacity-90 border border-purple-500 rounded-2xl shadow-glow w-full max-w-4xl h-[80vh] flex flex-col text-white">
+                    <!-- Header -->
+                    <div class="p-4 flex justify-between items-center border-b border-purple-700 flex-shrink-0">
+                        <h2 class="text-2xl font-bold text-purple-300">Choose Background</h2>
+                        <button id="close-background-modal-btn" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-times fa-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Main Content Area -->
+                    <div class="flex-grow flex flex-col p-4 overflow-hidden">
+                        <!-- Main Tabs (Video/Image) -->
+                        <div class="flex border-b border-gray-700 mb-4 flex-shrink-0">
+                            <button class="bg-modal-main-tab flex-1 py-2 px-4 text-sm font-medium text-center text-gray-400 hover:text-white border-b-2 border-transparent focus:outline-none active" data-tab-type="video">
+                                <i class="fas fa-video mr-2"></i>Videos
+                            </button>
+                            <button class="bg-modal-main-tab flex-1 py-2 px-4 text-sm font-medium text-center text-gray-400 hover:text-white border-b-2 border-transparent focus:outline-none" data-tab-type="image">
+                                <i class="fas fa-image mr-2"></i>Images
+                            </button>
+                        </div>
+
+                        <!-- Sub-category Tabs -->
+                        <div id="bg-modal-subcategory-tabs" class="mb-4 flex space-x-2 justify-center p-1 bg-gray-800 rounded-lg overflow-x-auto flex-shrink-0">
+                            <!-- Sub-category tabs will be rendered here by script.js -->
+                        </div>
+
+                        <!-- Grid Container -->
+                        <div id="bg-modal-grid-container" class="flex-grow overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-2 styled-scrollbar">
+                            <!-- Grid items will be rendered here by script.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Focus Mode Overlay -->
+        <div id="focus-overlay" class="fixed inset-0 bg-black bg-opacity-80 z-40 hidden flex flex-col justify-center items-center">
+            <div id="focus-timer" class="text-white text-7xl font-mono mb-8">25:00</div>
+            <button id="exit-focus" class="bg-red-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition-all">
+                <i class="fas fa-door-open mr-2"></i> Exit Focus Mode
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notification-container" class="fixed top-24 right-4 z-50 flex flex-col space-y-2 items-end">
+        <!-- Notifications will be injected here -->
+    </div>
+
+    <!-- Confetti Canvas for Celebrations -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-30"></canvas>
+
+    <!-- Audio Elements -->
+    <audio id="sound-complete" preload="auto">
+        <source src="/static/assets/sounds/complete.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-click" preload="auto">
+        <source src="/static/assets/sounds/click.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-levelup" preload="auto">
+        <source src="/static/assets/sounds/levelup.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="ambient-rain" loop>
+        <source src="/static/assets/sounds/rain.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="ambient-forest" loop>
+        <source src="/static/assets/sounds/forest.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="ambient-cafe" loop>
+        <source src="/static/assets/sounds/cafe.mp3" type="audio/mpeg">
+    </audio>
+
+    {# Note: script.js is loaded via base.html through the extra_js block or direct inclusion in base.html #}
+    {# If it's not already in base.html's structure, it needs to be added there. #}
+    {# For now, assuming base.html handles script.js loading. #}
+{% endblock %}
+
+{% block extra_js %}
+    {# If script.js specific to index.html needs to run AFTER base.html's JS, include it here. #}
+    {# However, general purpose scripts like script.js are usually part of base.html #}
+    {# or loaded after jQuery/other libs in base.html #}
+    <script src="/static/js/script.js"></script> {# Ensure this is correctly placed in loading order #}
+{% endblock %}

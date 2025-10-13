@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}FocusOS - Register{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 class="text-3xl font-bold text-white text-center mb-8">FocusOS</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('register') }}" class="space-y-6">
+        <div>
+            <input type="text" name="username" placeholder="Username" required
+                class="form-input" autocomplete="username">
+        </div>
+        <div>
+            <input type="email" name="email" placeholder="Email" required
+                class="form-input" autocomplete="email">
+        </div>
+        <div>
+            <input type="password" name="password" placeholder="Password" required
+                class="form-input" autocomplete="new-password">
+        </div>
+        <div>
+            <input type="password" name="confirm_password" placeholder="Confirm Password" required
+                class="form-input" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-auth">
+            <i class="fas fa-user-plus mr-2"></i>Register
+        </button>
+    </form>
+    
+    <div class="mt-6 text-center">
+        <p class="text-white text-sm">
+            Already have an account? 
+            <a href="{{ url_for('login') }}" class="auth-link">
+                Login here
+            </a>
+        </p>
+        <p class="text-white text-xs mt-2">
+            <a href="{{ url_for('index') }}" class="auth-link">&larr; Back to Home</a>
+        </p>
+    </div>
+</div>
+{% endblock %} 

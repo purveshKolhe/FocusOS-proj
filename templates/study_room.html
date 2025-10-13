@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}FocusOS - Study Room{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/styles.css">
+<link rel="stylesheet" href="/static/css/study_room.css">
+{% endblock %}
+
+{% block content %}
+<!-- Background Container -->
+<div id="background-container" class="absolute inset-0 z-0">
+    <div class="overlay"></div>
+    <video id="background-video" autoplay loop muted class="w-full h-full object-cover">
+        <source src="/static/assets/videos/forest_stream.webm" type="video/webm">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<!-- Particle Container -->
+<div id="particles-js" class="absolute inset-0 z-1 pointer-events-none"></div>
+
+<!-- Main Workspace -->
+<div id="workspace" class="relative z-10 w-full h-full">
+    <!-- Header Section with Room Info and Controls -->
+    <div class="fixed top-0 left-0 right-0 bg-black bg-opacity-10 backdrop-blur-sm p-2 z-30 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="logo-container">
+                <img src="/static/assets/logo/logo.png" alt="FocusOS Logo" class="logo-image">
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Notification Bell -->
+                <div class="relative">
+                    <button id="notification-bell" class="text-white hover:text-purple-300 transition-colors relative ">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
+                    </button>
+                    <!-- Notification Panel -->
+                    <div id="notification-panel" class="absolute right-0 mt-2 w-80 bg-gray-900 rounded-lg shadow-lg border border-purple-500 hidden">
+                        <div class="p-3 border-b border-gray-700 flex justify-between items-center">
+                            <h3 class="text-white font-semibold">Notifications</h3>
+                            <button id="clear-notifications" class="text-gray-400 hover:text-white text-sm">
+                                <i class="fas fa-trash-alt"></i> Clear All
+                            </button>
+                        </div>
+                        <div id="notification-list" class="max-h-96 overflow-y-auto">
+                            <!-- Notifications will be added here -->
+                        </div>
+                    </div>
+                </div>
+                <button id="invite-btn" class="btn-primary btn-glow-purple text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2"><i class="fas fa-user-plus sm:mr-1"></i> <span class="hidden sm:inline">Invite</span></button>
+                <button id="leave-room" class="btn-danger btn-glow-purple text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2"><i class="fas fa-sign-out-alt sm:mr-1"></i> <span class="hidden sm:inline">Leave</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden px-4">
+        <div class="modal-content bg-gray-900 bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-glow max-w-md w-full text-white backdrop-blur-md border border-blue-500">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-300">XP & Badge Rules</h2>
+            <div class="space-y-4">
+                <h3 class="text-lg font-bold text-blue-300">XP Rules</h3>
+                <ul class="list-disc list-inside">
+                    <li>Earn 10 XP per minute of work session.</li>
+                    <li>Level up when XP reaches your current level × 100.</li>
+                    <li>Excess XP carries over to the next level.</li>
+                </ul>
+                <h3 class="text-lg font-bold text-blue-300">Badge Rules</h3>
+                <div class="grid grid-cols-3 gap-4 mt-2">
+                    <div class="flex flex-col items-center">
+                        <div class="badge bronze tooltip">
+                            <i class="fas fa-medal"></i>
+                            <span class="tooltiptext">Study for 60 minutes</span>
+                        </div>
+                        <span class="text-xs mt-1">Beginner</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="badge silver tooltip">
+                            <i class="fas fa-award"></i>
+                            <span class="tooltiptext">Study for 300 minutes</span>
+                        </div>
+                        <span class="text-xs mt-1">Scholar</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="badge gold tooltip">
+                            <i class="fas fa-crown"></i>
+                            <span class="tooltiptext">Study for 1000 minutes</span>
+                        </div>
+                        <span class="text-xs mt-1">Master</span>
+                    </div>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <button id="close-rules" class="btn-primary btn-glow-purple"><i class="fas fa-times mr-2"></i>Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Modal -->
+    <div id="invite-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="bg-gray-900 p-6 rounded-lg shadow-glow max-w-md w-full text-white border border-purple-500">
+            <h2 class="text-xl font-bold mb-4 text-purple-300">Invite to Study Room</h2>
+            <p class="mb-2 text-gray-300">Share this link with your friends:</p>
+            <div id="room-link-to-copy" class="bg-gray-800 p-3 rounded mb-4 break-all font-mono text-sm">{{ request.url }}</div>
+            <button id="copy-link" class="btn-primary btn-glow-purple w-full mb-2"><i class="fas fa-copy mr-2"></i>Copy Link</button>
+            <button id="close-invite-modal" class="btn-secondary btn-glow-purple w-full">Close</button>
+        </div>
+    </div>
+
+    <!-- Vertical Navigation Bar -->
+    <div class="fixed top-16 left-0 h-full bg-black bg-opacity-0 z-30 vertical-nav">
+        <div class="nav-tabs-wrapper w-full h-full overflow-y-auto">
+            <div class="flex flex-col h-full space-y-2">
+                <button class="nav-tab active" data-target="video-panel"><i class="fas fa-video"></i><span class="tab-text">Video</span></button>
+                <button class="nav-tab active" data-target="timer-panel"><i class="fas fa-clock"></i><span class="tab-text">Timer</span></button>
+                <button class="nav-tab" data-target="participants-panel"><i class="fas fa-users"></i><span class="tab-text">Participants</span></button>
+                <button class="nav-tab" data-target="chat-panel"><i class="fas fa-comments"></i><span class="tab-text">Chat</span></button>
+                <button class="nav-tab" data-target="daphinix-panel"><i class="fas fa-robot"></i><span class="tab-text">Daphinix</span></button>
+                <button class="nav-tab" data-target="todo-panel"><i class="fas fa-tasks"></i><span class="tab-text">To-Do</span></button>
+                <button class="nav-tab" data-target="stats-panel"><i class="fas fa-chart-bar"></i><span class="tab-text">Stats</span></button>
+                <button class="nav-tab" data-target="environment-panel"><i class="fas fa-cog"></i><span class="tab-text">Environment</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Buttons (Focus Mode & Rules) -->
+    <div class="fixed bottom-4 right-4 z-30 flex space-x-3" id="control-buttons-container">
+        <button id="focus-mode" class="control-button-style bg-black bg-opacity-60 text-white p-3 rounded-full hover:bg-opacity-80 transition-all duration-300 tooltip">
+            <i class="fas fa-eye"></i>
+        </button>
+        <button id="rules-button" class="control-button-style bg-black bg-opacity-60 text-white p-3 rounded-full hover:bg-opacity-80 transition-all duration-300 tooltip">
+            <i class="fas fa-info-circle"></i>
+        </button>
+        <button id="exit-focus-mode" class="control-button-style hidden">
+            <i class="fas fa-times-circle"></i>
+            <span class="tooltiptext">Exit Focus Mode</span>
+        </button>
+    </div>
+
+    <!-- Timer Panel (Shared Room Timer) -->
+    <div id="timer-panel" class="content-panel">
+        <div class="flex flex-col items-center justify-center h-full">
+            <div id="pomodoro-clock-container" class="timer-circle mb-8">
+                <h2 class="text-center text-white text-xl mb-4">Shared Room Timer</h2>
+                <div class="time-display">
+                    <div id="shared-timer-display" class="timer-text">25:00</div>
+                    <div id="shared-session-label" class="session-label">Work Session</div>
+                </div>
+            </div>
+            <div class="w-full max-w-xs space-y-3 mb-5">
+                <div class="timer-buttons-container flex space-x-3">
+                    <button id="start-shared-timer" class="btn btn-primary flex-1 flex items-center justify-center">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="pause-shared-timer" class="btn btn-warning flex-1 flex items-center justify-center hidden">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button id="reset-shared-timer" class="btn btn-danger flex-1 flex items-center justify-center">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between w-full max-w-xs">
+                <div class="duration-input">
+                    <label for="shared-work-duration" class="text-white">Work (min):</label>
+                    <input id="shared-work-duration" type="number" value="25" min="1" class="duration-field">
+                </div>
+                <div class="duration-input">
+                    <label for="shared-break-duration" class="text-white">Break (min):</label>
+                    <input id="shared-break-duration" type="number" value="5" min="1" class="duration-field">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Panels (copied from index.html for full feature parity) -->
+    <div class="container-with-sidebar mx-auto pt-24 pb-4 px-4">
+        <!-- Video Panel (New) -->
+        <div id="video-panel" class="content-panel active">
+            <div id="video-grid-container" class="video-grid">
+                <!-- Video streams will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Participants Panel -->
+        <div id="participants-panel" class="content-panel" >
+            <div style="width: 60vw;" class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-lg mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Participants</h2>
+                <div id="participants-list" class="participants-list"></div>
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div id="chat-panel" class="content-panel">
+            <div class="bg-black bg-opacity-60 text-white p-4 rounded-xl w-full mx-auto flex flex-col" style="height: 80vh; max-height: calc(100vh - 120px);">
+                <h2 class="text-2xl font-bold mb-4 text-center text-purple-300 flex-shrink-0">Room Chat</h2>
+                <div id="chat-messages" class="chat-messages bg-gray-800 bg-opacity-60 rounded-lg px-2 py-1 mb-2 flex-grow" style="overflow-y: auto; font-size: 0.92rem;"></div>
+                <div class="chat-input-area mt-1 flex-shrink-0">
+                    <textarea id="chat-input" class="w-full bg-gray-800 bg-opacity-80 text-white rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2 resize-none" placeholder="Type a message..." style="font-size: 0.95rem;" rows="2"></textarea>
+                    <button id="send-message" class="btn-primary btn-glow-purple w-full py-2 text-lg"><i class="fas fa-paper-plane mr-2"></i>Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daphinix Panel (AI Chat Assistant) -->
+        <div id="daphinix-panel" class="content-panel">
+            <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Get Help with Daphinix AI</h2>
+                <div id="daphinix-container" class="flex flex-col">
+                    <div id="responseArea" class="daphinix-response-area bg-gray-800 bg-opacity-60 rounded-lg p-4 mb-4 min-h-[300px] max-h-[400px] overflow-auto"></div>
+                    <div class="daphinix-input-container">
+                        <div id="image-preview-container" class="flex items-center mb-2" style="display:none;">
+                            <img id="image-preview" src="" alt="Image Preview" class="max-h-24 rounded mr-2 border border-purple-400">
+                            <button id="remove-image-btn" class="text-red-500 hover:text-red-700 text-xl font-bold" title="Remove Image" style="background:none;border:none;outline:none;cursor:pointer;">&times;</button>
+                        </div>
+                        <div class="relative flex items-center">
+                            <button id="upload-image-btn" class="mr-2 bg-purple-600 text-white rounded-full p-2 hover:bg-purple-700 transition-all" title="Upload Image"><i class="fas fa-image"></i></button>
+                            <input type="file" id="image-upload" accept="image/*" class="hidden">
+                            <textarea id="myInput" class="daphinix-input w-full bg-gray-800 bg-opacity-80 text-white rounded-lg py-3 px-4 pr-12 resize-none" placeholder="Ask Daphinix any academic question..." rows="2"></textarea>
+                            <button id="send-button" class="absolute right-3 rounded-full p-2 bg-purple-600 text-white hover:bg-purple-700 transition-all"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                        <div class="flex justify-end mt-2">
+                            <button id="clear-chat" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm flex items-center"><i class="fas fa-trash-alt mr-1"></i> Clear Chat</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- To-Do List Panel -->
+        <div id="todo-panel" class="content-panel">
+            <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-5xl mx-auto w-full">
+                <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">To-Do List</h2>
+                <div class="flex justify-end mb-4">
+                    <button id="open-todo-modal" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Add Task</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-gray-900 rounded-lg">
+                        <thead>
+                            <tr>
+                                <th class="py-2 px-4 text-left">Task Name</th>
+                                <th class="py-2 px-4 text-left">Start Date</th>
+                                <th class="py-2 px-4 text-left">Due Date</th>
+                                <th class="py-2 px-4 text-left">Status</th>
+                                <th class="py-2 px-4 text-left">Priority</th>
+                                <th class="py-2 px-4 text-left">Effort Level</th>
+                                <th class="py-2 px-4 text-left">Description</th>
+                                <th class="py-2 px-4 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="todo-table-body">
+                            <!-- Tasks will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div id="todo-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+            <div class="bg-gray-900 p-6 rounded-lg shadow-glow max-w-lg w-full text-white border border-purple-500">
+                <h3 class="text-xl font-bold mb-4 text-purple-300">Add New Task</h3>
+                <form id="todo-form">
+                    <div class="mb-3">
+                        <label class="block mb-1">Task Name</label>
+                        <input id="todo-input-name" type="text" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" required>
+                    </div>
+                    <div class="mb-3 flex space-x-2">
+                        <div class="flex-1">
+                            <label class="block mb-1">Start Date</label>
+                            <input id="todo-input-start" type="datetime-local" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" required>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block mb-1">Due Date</label>
+                            <input id="todo-input-due" type="datetime-local" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 flex space-x-2">
+                        <div class="flex-1">
+                            <label class="block mb-1">Status</label>
+                            <select id="todo-input-status" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white">
+                                <option value="Not started">Not started</option>
+                                <option value="In progress">In progress</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block mb-1">Priority</label>
+                            <select id="todo-input-priority" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block mb-1">Effort Level</label>
+                            <select id="todo-input-effort" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block mb-1">Description</label>
+                        <textarea id="todo-input-desc" class="w-full p-2 rounded bg-gray-800 border border-purple-500 text-white" rows="2"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="close-todo-modal" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Add Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Environment Panel (copied exactly from index.html) -->
+        <div id="environment-panel" class="content-panel">
+            <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-lg mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Environment Settings</h2>
+                
+                <div class="mb-6">
+                    <h3 class="font-bold mb-3 text-purple-300"><i class="fas fa-image mr-1"></i> Background</h3>
+                    <button id="open-background-modal-btn" class="settings-select w-full text-left flex justify-between items-center">
+                        <span id="current-background-name-display">Forest Stream</span> <!-- Default or last selected -->
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="font-bold mb-3 text-purple-300"><i class="fas fa-volume-up mr-1"></i> Ambient Sound</h3>
+                    <select id="ambient-sound-select" class="settings-select">
+                        <option value="none">No Sound</option>
+                        <option value="rain" selected>Rainfall</option>
+                        <option value="forest">Forest Sounds</option>
+                        <option value="cafe">Coffee Shop</option>
+                    </select>
+                    <div class="mt-3 flex items-center">
+                        <span class="mr-2">Volume:</span>
+                        <input type="range" id="volume-slider" min="0" max="100" value="50" class="w-full accent-purple-500">
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-3 text-purple-300"><i class="fas fa-sliders-h mr-1"></i> Effects</h3>
+                    <div class="flex items-center justify-between bg-gray-800 bg-opacity-60 p-4 rounded-lg mb-3">
+                        <span>Night Mode:</span>
+                        <label class="switch ml-2">
+                            <input type="checkbox" id="day-night-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                        <span>Show Particles:</span>
+                        <label class="switch ml-2">
+                            <input type="checkbox" id="particles-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Panel (copied from index.html) -->
+        <div id="stats-panel" class="content-panel">
+            <div class="bg-black bg-opacity-60 text-white p-6 rounded-xl max-w-3xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-center text-purple-300">Your Study Statistics</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="stats-card">
+                        <i class="fas fa-clock text-4xl text-purple-300"></i>
+                        <h3 class="mt-2">Total Time</h3>
+                        <p id="stats-total-time" class="text-2xl font-bold">0 min</p>
+                    </div>
+                    <div class="stats-card">
+                        <i class="fas fa-calendar-alt text-4xl text-purple-300"></i>
+                        <h3 class="mt-2">Sessions</h3>
+                        <p id="stats-total-sessions" class="text-2xl font-bold">0</p>
+                    </div>
+                    <div class="stats-card">
+                        <i class="fas fa-medal text-4xl text-purple-300"></i>
+                        <h3 class="mt-2">Badges</h3>
+                        <p id="stats-total-badges" class="text-2xl font-bold">0</p>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold mb-2 text-purple-300">Study History</h3>
+                    <div id="recent-sessions" class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-60 p-4 rounded-lg">
+                        <p class="text-gray-400 text-center">No sessions recorded yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Focus Mode Overlay -->
+    <div id="focus-overlay" class="fixed inset-0 bg-black bg-opacity-80 z-40 hidden flex flex-col justify-center items-center">
+        <div id="focus-timer" class="text-white text-7xl font-mono mb-8">25:00</div>
+        <button id="exit-focus" class="bg-red-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition-all">
+            <i class="fas fa-door-open mr-2"></i> Exit Focus Mode
+        </button>
+    </div>
+</div>
+
+<!-- Notification System -->
+<div id="notification-container" class="fixed top-24 right-4 z-50 flex flex-col space-y-2 items-end">
+    <!-- Notifications will be injected here -->
+</div>
+
+<!-- Confetti Canvas for Celebrations -->
+<canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-30"></canvas>
+
+<!-- Audio Elements -->
+<audio id="sound-complete" preload="auto">
+    <source src="/static/assets/sounds/complete.mp3" type="audio/mpeg">
+</audio>
+<audio id="sound-click" preload="auto">
+    <source src="/static/assets/sounds/click.mp3" type="audio/mpeg">
+</audio>
+<audio id="sound-levelup" preload="auto">
+    <source src="/static/assets/sounds/levelup.mp3" type="audio/mpeg">
+</audio>
+<audio id="ambient-rain" loop>
+    <source src="/static/assets/sounds/rain.mp3" type="audio/mpeg">
+</audio>
+<audio id="ambient-forest" loop>
+    <source src="/static/assets/sounds/forest.mp3" type="audio/mpeg">
+</audio>
+<audio id="ambient-cafe" loop>
+    <source src="/static/assets/sounds/cafe.mp3" type="audio/mpeg">
+</audio>
+
+<!-- JS Libraries and App Script -->
+<script src="/static/lib/jquery-3.6.0.min.js"></script>
+<script src="/static/lib/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.2.js"></script>
+<script src="/static/js/script.js"></script>
+<script src="/static/js/study_room.js"></script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}FocusOS - Login{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 class="text-3xl font-bold text-white text-center mb-8">FocusOS</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('login') }}" class="space-y-6">
+        <div>
+            <input type="text" name="username" placeholder="Username" required
+                class="form-input" autocomplete="username">
+        </div>
+        <div>
+            <input type="password" name="password" placeholder="Password" required
+                class="form-input" autocomplete="current-password">
+        </div>
+        <div class="flex items-center">
+            <input type="checkbox" name="remember" id="remember" class="mr-2">
+            <label for="remember" class="text-white text-sm">Remember me</label>
+        </div>
+        <button type="submit" class="btn-auth">
+            <i class="fas fa-sign-in-alt mr-2"></i>Login
+        </button>
+    </form>
+    
+    <div class="mt-6 text-center">
+        <p class="text-white text-sm">
+            Don't have an account? 
+            <a href="{{ url_for('register') }}" class="auth-link">
+                Register here
+            </a>
+        </p>
+        <p class="text-white text-xs mt-2">
+            <a href="{{ url_for('index') }}" class="auth-link">&larr; Back to Home</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Clear the welcome notification flag when the login page loads.
+        // This ensures that after a logout and redirect to login, the next successful login
+        // will trigger the "Welcome Back!" notification on the main page.
+        sessionStorage.removeItem('mainPageWelcomeNotificationSent');
+        console.log("[Login Page] Cleared 'mainPageWelcomeNotificationSent' from sessionStorage.");
+    });
+</script>
+{% endblock %} 

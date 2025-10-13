@@ -1,0 +1,922 @@
+.study-room-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+    height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.room-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.room-name {
+    font-family: "Almendra", serif;
+    font-size: 24px;
+    color: #ff8a00;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(255, 138, 0, 0.5);
+}
+
+.room-code {
+    display: none;
+}
+
+.room-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.room-content {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Styles for the timer container in study_room.html, mimicking .timer-circle from styles.css */
+#pomodoro-clock-container.timer-circle {
+    width: 320px; /* Increased width */
+    height: 220px; /* Increased height */
+    background-color: rgba(25, 25, 30, 0.7); /* Slightly darker, more opaque background */
+    border-radius: 30px; /* Slightly more pronounced rounding */
+    box-shadow: 0 0 20px rgba(128, 0, 128, 0.6), 0 0 40px rgba(128, 0, 128, 0.4); /* Enhanced glow */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #e0e0e0; /* General text color inside timer */
+    position: relative;
+    margin: 0 auto 2rem auto; /* Increased bottom margin */
+    animation: timerPulse 3s infinite; /* Adjusted animation timing */
+}
+
+/* Timer Circle Heading (e.g., "Pomodoro Timer") */
+#pomodoro-clock-container.timer-circle h2 {
+    font-size: 1.1rem; /* Slightly smaller to give more space to the time */
+    font-weight: 500;
+    margin-bottom: 0.75rem; /* Adjusted spacing */
+    color: #b0b0b0; /* Softer color for the heading */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Main Timer Text (e.g., 25:00) - Targeting #timer-display */
+#timer-display.timer-text {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    font-size: 5.5rem; /* Significantly larger timer text */
+    font-weight: 600; /* Bold but not overly so */
+    color: #ffffff; /* Bright white for high visibility */
+    line-height: 1;
+    margin-bottom: 0.5rem; /* Space below timer text */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* Subtle white glow */
+}
+
+/* Session Label (e.g., "Work Session") - Targeting #session-label */
+#session-label.session-label {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    font-size: 1rem; /* Slightly larger */
+    font-weight: 400;
+    color: #a0a0a0; /* Softer color */
+    margin-top: 0.25rem;
+    letter-spacing: 0.5px;
+}
+
+/* Timer Controls Container - Targeting .timer-buttons-container */
+.timer-buttons-container {
+    display: flex;
+    gap: 1rem; /* Adjust the gap as needed */
+    width: 100%;
+    max-width: 300px; /* Consistent with main timer */
+    margin-bottom: 1.5rem; /* Space below controls */
+}
+
+/* Styling for individual timer control buttons */
+.timer-buttons-container button {
+    padding: 1rem 0; /* Adjusted padding */
+    font-size: 1.1rem; /* Adjusted font size */
+    font-weight: 600;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* Specific button colors matching main interface, using the correct IDs */
+.timer-buttons-container button#start-shared-timer {
+    background-color: rgba(40, 167, 69, 0.3);
+    border: 1px solid rgba(40, 167, 69, 0.5);
+}
+.timer-buttons-container button#start-shared-timer:hover {
+    background-color: rgba(40, 167, 69, 0.6);
+    transform: translateY(-2px);
+}
+
+.timer-buttons-container button#pause-shared-timer {
+    background-color: rgba(255, 193, 7, 0.3);
+    border: 1px solid rgba(255, 193, 7, 0.5);
+}
+.timer-buttons-container button#pause-shared-timer:hover {
+    background-color: rgba(255, 193, 7, 0.6);
+    transform: translateY(-2px);
+}
+
+.timer-buttons-container button#reset-shared-timer {
+    background-color: rgba(220, 53, 69, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.5);
+}
+.timer-buttons-container button#reset-shared-timer:hover {
+    background-color: rgba(220, 53, 69, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Duration Inputs Styling - Targeting .duration-input and its children */
+.duration-input {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center labels and inputs */
+}
+
+.duration-input label {
+    font-size: 0.85rem;
+    color: #b0b0b0;
+    margin-bottom: 0.3rem;
+}
+
+.duration-input input.duration-field {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f0f0f0;
+    border-radius: 6px;
+    padding: 0.5rem;
+    width: 70px; /* Adjust width as needed */
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.duration-input input.duration-field:focus {
+    outline: none;
+    border-color: #800080; /* Purple focus */
+    box-shadow: 0 0 0 2px rgba(128, 0, 128, 0.3);
+}
+
+/* Add timerPulse animation if not already globally defined */
+@keyframes timerPulse {
+    0% {
+        box-shadow: 0 0 20px rgba(128, 0, 128, 0.6), 0 0 40px rgba(128, 0, 128, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(160, 0, 160, 0.8), 0 0 60px rgba(160, 0, 160, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(128, 0, 128, 0.6), 0 0 40px rgba(128, 0, 128, 0.4);
+    }
+}
+
+.right-panel {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.participants-panel {
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.participants-panel h3 {
+    color: #fff;
+    margin: 0 0 10px 0;
+}
+
+.participants-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.participant {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.participant-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background: #4a5568;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.participant-name {
+    color: #fff;
+    flex: 1;
+}
+
+.chat-panel {
+    /* height: calc(100vh - 8rem); */ /* Removed fixed height, will be controlled by parent flex */
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.0); /* Made transparent, parent div has bg */
+    box-shadow: none; /* Removed shadow, parent div has shadow */
+    /* Ensure the panel itself tries to take available height within its content-panel container */
+    flex-grow: 1;
+}
+
+/* The direct child div inside chat-panel, which now has the background and rounded corners */
+.chat-panel > .bg-black {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow this to grow */
+    /* height: 80vh; */ /* Keep or adjust from HTML if needed */
+    /* max-height: calc(100vh - 120px); */ /* Keep or adjust from HTML */
+}
+
+.chat-messages {
+    flex-grow: 1; /* Changed from flex: 1 */
+    overflow-y: auto;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    word-break: break-word;
+}
+
+.chat-message {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 85%; /* Max width for the entire message row */
+    margin-bottom: 0; /* Set spacing between messages to 0 */
+    animation: fadeIn 0.3s ease-in-out;
+    /* width: 100%; */ /* Ensure it tries to use space from parent .chat-messages */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-message.sent {
+    margin-left: auto;
+    flex-direction: row-reverse;
+}
+
+.chat-message.sent .message-avatar {
+    display: none; /* Hide avatar for sent messages */
+}
+
+.chat-message.received {
+    margin-right: auto;
+}
+
+.chat-message.system-message {
+    margin: 0.5rem auto;
+    max-width: 100%;
+    text-align: center;
+    color: #9CA3AF;
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+.message-avatar {
+    flex-shrink: 0;
+    margin-top: auto; /* Aligns avatar to the bottom of the flex container if bubble is taller */
+}
+
+.avatar-circle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.75rem;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sent .avatar-circle {
+    background-color: #8B5CF6;
+}
+
+.received .avatar-circle {
+    background-color: #4B5563;
+}
+
+.message-bubble {
+    /* background-color: #374151; */ /* Default is now set by .received/.sent specific */
+    border-radius: 18px;
+    padding: 0; /* Padding set to 0 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+    word-wrap: break-word; /* Handles long words within the bubble */
+    overflow-wrap: break-word; /* Standard equivalent */
+    min-width: 0; /* Important for flex item text wrapping */
+    flex: 1; /* Allow bubble to grow and shrink: flex-grow:1, flex-shrink:1, flex-basis:0% */
+}
+
+.sent .message-bubble {
+    background-color: #3B82F6; /* Blue-500 */
+    color: #FFFFFF;
+    border-radius: 18px 18px 4px 18px; /* Tail on bottom-right */
+}
+
+.received .message-bubble {
+    background-color: #F3F4F6; /* Gray-100 */
+    color: #1F2937; /* Gray-800 */
+    border-radius: 18px 18px 18px 4px; /* Tail on bottom-left */
+}
+
+.message-header {
+    display: none; 
+}
+
+.message-sender { 
+    font-weight: 600;
+    font-size: 0.875rem; 
+    display: block; 
+    margin-bottom: 0.1rem; 
+}
+.sent .message-sender {
+    color: #E5E7EB; 
+}
+.received .message-sender {
+    color: #4B5563; 
+}
+
+.message-time {
+    display: none; 
+}
+
+.message-content {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem; 
+    line-height: 1.5;
+    /* word-break: break-word; */ /* Removed, handled by bubble */
+    /* Ensure content can take full width of bubble */
+}
+
+.chat-input-area { /* New class for the container of textarea and button */
+    display: flex;
+    flex-direction: column; /* Stack textarea and button vertically */
+    gap: 0.5rem; /* Space between textarea and button */
+    padding: 0.5rem; /* Padding for the input area */
+    background-color: transparent; /* Parent has background */
+    border-radius: 0; /* Parent has radius */
+    margin-top: 0; /* Parent has margin/spacing */
+    flex-shrink: 0; /* Prevent this area from shrinking */
+}
+
+textarea#chat-input { /* Styles for the new textarea */
+    width: 100%;
+    background-color: #374151;
+    border: 1px solid #4B5563;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    color: #F3F4F6;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    resize: none; /* Explicitly disable resize */
+    min-height: 40px; /* Minimum height for a couple of lines */
+}
+
+textarea#chat-input:focus {
+    outline: none;
+    border-color: #8B5CF6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+#send-message {
+    background-color: #8B5CF6;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; /* Make button full width */
+}
+
+#send-message:hover {
+    background-color: #7C3AED;
+    transform: translateY(-1px);
+}
+
+#send-message:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar Styles */
+.chat-messages::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #1F2937;
+    border-radius: 2px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #4B5563;
+    border-radius: 2px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #6B7280;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #1a202c;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.room-code-display {
+    font-size: 24px;
+    font-weight: bold;
+    color: #a5b4fc;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.btn-primary, .btn-secondary, .btn-danger, .btn-warning {
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-secondary {
+    background: #4a5568;
+    color: white;
+}
+
+.btn-danger {
+    background: #e53e3e;
+    color: white;
+}
+
+.btn-warning {
+    background: #ed8936;
+    color: white;
+}
+
+.btn-primary:hover, .btn-secondary:hover, .btn-danger:hover, .btn-warning:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Notification Styles */
+#notification-bell {
+    position: relative;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+    color: white;
+}
+
+#notification-bell:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 2px solid #1f2937;
+}
+
+#notification-panel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    background-color: #1f2937;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #4b5563;
+    z-index: 50;
+    margin-top: 8px;
+    transform-origin: top right;
+    transition: all 0.3s ease;
+}
+
+#notification-panel.hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+#notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.notification-item {
+    padding: 12px;
+    border-bottom: 1px solid #374151;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: #374151;
+}
+
+.notification-item.unread {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+.notification-item .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.notification-item .notification-title {
+    font-weight: 600;
+    color: #f3f4f6;
+}
+
+.notification-item .notification-time {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.notification-item .notification-content {
+    color: #d1d5db;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.notification {
+    background-color: #1f2937;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #4b5563;
+    margin-bottom: 8px;
+    animation: slideIn 0.3s ease-out;
+    max-width: 320px;
+}
+
+.notification.success {
+    border-color: #059669;
+}
+
+.notification.info {
+    border-color: #3b82f6;
+}
+
+.notification.warning {
+    border-color: #d97706;
+}
+
+.notification.error {
+    border-color: #dc2626;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments for the study room header */
+@media (max-width: 640px) { /* Corresponds to Tailwind's 'sm' breakpoint */
+    .room-header .logo-container .logo-text {
+        font-size: 1.5rem; /* Slightly smaller logo text on very small screens */
+    }
+
+    .room-header .room-name-center {
+        font-size: 1rem; /* Smaller room name */
+        margin-top: 0.25rem; /* Add some space if it wraps under */
+        margin-bottom: 0.25rem;
+    }
+
+    .room-header .flex.items-center.space-x-2 {
+        /* This targets the controls container on small screens (due to sm:space-x-4) */
+        flex-wrap: nowrap; /* Prevent buttons themselves from wrapping if space is extremely tight */
+    }
+
+    /* Ensure room code (when only code is shown) is visible and not overly large */
+    .room-header .room-code-display.md\:hidden {
+        font-size: 0.7rem; /* text-xs equivalent */
+        padding: 2px 4px;
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 4px;
+    }
+
+    .room-header .btn-primary,
+    .room-header .btn-danger {
+        padding: 0.25rem 0.5rem; /* Smaller padding for buttons */
+        font-size: 0.7rem; /* Smaller font for icons if text is hidden */
+    }
+
+    .room-header .btn-primary i,
+    .room-header .btn-danger i {
+        margin-right: 0; /* Remove margin from icon when text is hidden */
+    }
+
+    /* Notification bell icon size if needed, though Tailwind classes attempt this */
+    .room-header #notification-bell i {
+        font-size: 1rem; /* text-base */
+    }
+}
+
+/* Ensure the specific Tailwind classes in HTML take precedence for show/hide */
+.md\:hidden {
+    display: inline !important; /* Or block/flex depending on context if Tailwind is overridden */
+}
+
+@media (min-width: 768px) {
+    .md\:hidden {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .vertical-nav {
+        width: 60px;
+        background-color: rgba(0, 0, 0, 0.8);
+        margin: 0;
+    }
+
+    .nav-tab {
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .nav-tab.active .tab-text,
+    .nav-tab .tab-text {
+        display: none;
+    }
+
+    .nav-tab i {
+        font-size: 1rem;
+    }
+
+    .tab-text {
+        display: none;
+    }
+
+    /* REMOVING THE HOVER EFFECT FOR TAB TEXT ON MOBILE 
+    .vertical-nav:hover .tab-text {
+        display: inline;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+    */
+}
+
+.daphinix-response-area {
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Wider chat and Daphinix on mobile, Daphinix shorter */
+@media (max-width: 640px) { /* sm breakpoint */
+    .container-with-sidebar {
+        padding-left: 5px; /* Further reduce side padding */
+        padding-right: 5px;
+    }
+
+    #chat-panel .bg-black, /* Target the inner div with background */
+    #daphinix-panel .bg-black { 
+        /* width: 95vw; */ /* Let w-full and parent padding handle it mostly */
+        margin-left: auto; /* Ensure it's centered if parent is wider */
+        margin-right: auto;
+    }
+
+    #daphinix-panel .bg-black { /* Daphinix specific height on mobile */
+        height: 60vh; 
+        max-height: calc(100vh - 100px); /* Adjust max height as well */
+    }
+
+    #daphinix-panel .daphinix-response-area {
+        min-height: 150px; /* Adjust min height for shorter panel */
+        /* max-height will be constrained by parent */
+    }
+}
+
+#video-grid-container {
+    display: grid;
+    /* Responsive grid for different screen sizes */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    height: calc(100vh - 120px); /* Adjust based on your header height */
+    overflow-y: auto;
+}
+
+/* On larger screens, enforce a 5-column grid */
+@media (min-width: 1200px) {
+    #video-grid-container {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+.video-player-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.video-player-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9; /* Modern way to maintain aspect ratio */
+    background-color: #1a1a1a;
+    border-radius: 0.75rem;
+    overflow: hidden; /* Reverted to hidden to clip the video correctly */
+    box-shadow: 0 4px_10px rgba(0, 0, 0, 0.5);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.video-player-container > div, /* Targets Agora's wrapper */
+.video-player-container > video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This ensures the video fills the container, cropping if necessary */
+}
+
+.video-player-container.is-local {
+    border: 2px solid #8B5CF6; /* A shade of purple to indicate it's the local user */
+}
+
+.video-user-info {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 10; /* Ensure it's above the video stream */
+}
+
+/* Added for video controls */
+.video-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    padding: 5px;
+    border-radius: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 10; /* Ensure it's above the video stream */
+}
+
+.video-player-wrapper:hover .video-controls {
+    opacity: 1;
+}
+
+.control-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.control-btn.danger {
+    background-color: #ef4444; /* red-500 */
+}
+
+.control-btn.danger:hover {
+    background-color: #dc2626; /* red-600 */
+}
+
+.video-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    padding: 1rem;
+    height: calc(100vh - 150px);
+    overflow-y: auto;
+}
