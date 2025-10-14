@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: focusos
+    env: python
+    plan: free  # or 'starter', 'pro', etc. depending on your Render plan
+    branch: master
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py  # ← change this to match your app’s entry point
+    build:
+      pythonVersion: 3.11.8
