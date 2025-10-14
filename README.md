@@ -36,7 +36,7 @@ $env:GEMINI_API_KEY = "<your-api-key>"
 # macOS/Linux
 export GEMINI_API_KEY="<your-api-key>"
 ```
-Optionally use a `.env` file for other settings (Flask secret, etc.).
+Optionally use a `.env` file for other settings (Flask secret, firebase service account key[json] etc.).
 
 ## Run
 ```bash
@@ -54,7 +54,10 @@ The app starts the Flask dev server and Socket.IO using threading async mode.
 ## Configuration Notes
 - Place `serviceAccountKey.json` in the project root.
 - Ensure `GEMINI_API_KEY` is set before using AI features.
-- SocketIO is configured with `async_mode='threading'` for wide OS compatibility.
+- SocketIO is configured with `async_mode='threading'` for wide OS compatibility. 
+
+# IMPORTANT NOTE: If testing this project, use async_mode = "eventlet" on environments like render web service and async_mode = "threading" on local PC. Why?:
+I had run into a lot of problems while running this and after 2 days of doing stuff, I realised that it is what it is. I don't know how that works and why that works, but it does!
 
 ## Migration Note (AI SDK)
 - Migrated from deprecated `google.generativeai` to the new `google-genai` SDK.
