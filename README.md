@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 2) Firebase service account
 - In Firebase Console → Project Settings → Service Accounts → Generate new private key.
-- Save as `serviceAccountKey.json` in the project root (`FocusOS-octopus/`).
+- Save as `serviceAccountKey.json` in the project root (`FocusOS-proj/`).
 
 3) Environment variables
 Set your Gemini key (do not commit secrets):
