@@ -4,7 +4,7 @@ A gamified study platform with real‑time rooms and an AI study assistant.
 
 Created and maintained by **Purvesh Kolhe**  
 Initial concept, design, and codebase built in October 2025.  
-This is a private project. Contributors joined after core architecture.
+This is a private project. DO NOT copy.
 
 ## Tech Stack
 - **Backend**: Flask, Flask‑SocketIO (threading mode)
